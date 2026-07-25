@@ -1,3 +1,4 @@
+from .midime import MidiMe, train_midime
 from .model import BidirectionalLstmEncoder, CategoricalLstmDecoder, MusicVAE
 from .tokenizer import (
     BARS_PER_CHUNK,
@@ -21,6 +22,8 @@ __all__ = [
     "MusicVAE",
     "BidirectionalLstmEncoder",
     "CategoricalLstmDecoder",
+    "MidiMe",
+    "train_midime",
     "OUTPUT_DEPTH",
     "SEQ_LEN",
     "STEPS_PER_BAR",
