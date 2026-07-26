@@ -4,6 +4,12 @@ Streamlit entrypoint. Routes between the three modes; owns all the
 server process, not once per slider drag (see inference/loader.py's docstring
 for why each of these is cached the way it is).
 
+Also owns the app's visual identity: the piano roll (ui/piano_roll.py) already
+maps pitch to a cyan -> magenta gradient on a dark background. Everything here
+just extends that same language -- same two colors, same dark surface -- into
+the page chrome, so the charts don't look like they're sitting inside a
+different, unrelated app.
+
 Expects, relative to this file:
     weights/musicvae_trained.pt   -- your trained MusicVAE (gitignored, local only)
     weights/midime_offline.pt      -- from scripts/precompute_midime.py (committed)
@@ -26,7 +32,168 @@ MIDIME_BUNDLE = os.path.join(BASE_DIR, "weights", "midime_offline.pt")
 PCA_BUNDLE = os.path.join(BASE_DIR, "weights", "pca_basis.pt")
 CHORUS_DIR = os.path.join(BASE_DIR, "assets", "chorus_midis")
 
+# Same values as ui/piano_roll.py's BG_COLOR / TEXT_COLOR, and the two ends of
+# its pitch gradient (_pitch_to_color at t=0 and t=1) -- kept as named
+# constants here rather than re-derived, so the two files can't silently drift
+# apart. If you ever restyle the piano roll's gradient, update these to match.
+BG_COLOR = "#0e0e10"
+SURFACE_COLOR = "#17171a"
+BORDER_COLOR = "rgba(255,255,255,0.08)"
+TEXT_COLOR = "#e8e8e8"
+TEXT_MUTED = "#8a8a92"
+CYAN = "#50dcff"    # low-pitch end of the piano roll's gradient
+MAGENTA = "#ff64d7"  # high-pitch end
+
 st.set_page_config(page_title="MidiMorph", page_icon="🎹", layout="wide")
+
+
+def inject_theme():
+    st.markdown(
+        f"""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+        html, body, [class*="css"] {{
+            font-family: 'IBM Plex Sans', sans-serif;
+        }}
+
+        /* ---- page background ---- */
+        .stApp {{
+            background: {BG_COLOR};
+            color: {TEXT_COLOR};
+        }}
+        section[data-testid="stSidebar"] {{
+            background: {SURFACE_COLOR};
+            border-right: 1px solid {BORDER_COLOR};
+        }}
+
+        /* ---- constrain content width; wide layout + edge-to-edge text hurts
+           readability, keep the wide canvas for the piano rolls/sliders but
+           cap prose measure ---- */
+        .block-container {{
+            max-width: 1200px;
+            padding-top: 2rem;
+        }}
+
+        /* ---- headers in the display face ---- */
+        h1, h2, h3 {{
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }}
+
+        /* ---- hero title: reuse the piano roll's own pitch gradient as text,
+           so the chrome and the charts share one signature ---- */
+        .mm-hero-title {{
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 2.75rem;
+            line-height: 1.1;
+            margin-bottom: 0.2rem;
+            background: linear-gradient(90deg, {CYAN}, {MAGENTA});
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }}
+        .mm-hero-sub {{
+            font-family: 'IBM Plex Sans', sans-serif;
+            color: {TEXT_MUTED};
+            font-size: 1rem;
+            max-width: 640px;
+            margin-bottom: 1.75rem;
+        }}
+
+        /* ---- sidebar mode switch: restyle the radio into a pill nav ---- */
+        section[data-testid="stSidebar"] .stRadio > label {{
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: {TEXT_MUTED};
+        }}
+        section[data-testid="stSidebar"] .stRadio [role="radiogroup"] label {{
+            background: transparent;
+            border: 1px solid {BORDER_COLOR};
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.4rem;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }}
+        section[data-testid="stSidebar"] .stRadio [role="radiogroup"] label:hover {{
+            border-color: {CYAN};
+        }}
+
+        /* ---- data readouts (captions, small text) in mono, to tie the UI's
+           numbers -- bpm, alpha, slider values -- to the token/sequence
+           nature of the thing being controlled ---- */
+        [data-testid="stCaptionContainer"], .mm-mono {{
+            font-family: 'IBM Plex Mono', monospace !important;
+            color: {TEXT_MUTED};
+        }}
+
+        /* ---- sliders: gradient-tinted handle instead of Streamlit's default red ---- */
+        .stSlider [role="slider"] {{
+            background-color: {CYAN} !important;
+            border-color: {CYAN} !important;
+        }}
+        .stSlider > div > div > div > div {{
+            background: linear-gradient(90deg, {CYAN}, {MAGENTA}) !important;
+        }}
+
+        /* ---- primary buttons: gradient fill matching the hero ---- */
+        .stButton > button[kind="primary"] {{
+            background: linear-gradient(90deg, {CYAN}, {MAGENTA});
+            border: none;
+            color: #0e0e10;
+            font-weight: 600;
+        }}
+        .stButton > button {{
+            border-radius: 8px;
+            border: 1px solid {BORDER_COLOR};
+        }}
+        .stButton > button:hover {{
+            border-color: {CYAN};
+            color: {CYAN};
+        }}
+
+        /* ---- generation output card: a thin gradient border around each
+           piano-roll + audio block, echoing the pitch gradient as "this box
+           holds pitched content" -- the one place we spend the page's
+           boldness beyond the hero ---- */
+        .mm-card {{
+            border-radius: 12px;
+            padding: 1px;
+            background: linear-gradient(135deg, {CYAN}55, {MAGENTA}55);
+            margin-bottom: 1rem;
+        }}
+        .mm-card-inner {{
+            background: {SURFACE_COLOR};
+            border-radius: 11px;
+            padding: 1rem 1.25rem 1.25rem;
+        }}
+
+        /* ---- expander / divider tone down to match dark surface ---- */
+        .streamlit-expanderHeader {{
+            font-family: 'Space Grotesk', sans-serif;
+            color: {TEXT_COLOR};
+        }}
+        hr {{
+            border-color: {BORDER_COLOR};
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_hero():
+    st.markdown('<div class="mm-hero-title">MidiMorph</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="mm-hero-sub">A from-scratch MusicVAE, trained on POP909, '
+        "explored three ways: proving its latent space is continuous, sampling "
+        "it directly, and personalizing it to a track you pick.</div>",
+        unsafe_allow_html=True,
+    )
 
 
 @st.cache_resource
@@ -45,7 +212,8 @@ def get_pca_bundle():
 
 
 def main():
-    st.title("🎹 MidiMorph")
+    inject_theme()
+    render_hero()
 
     try:
         model = get_model()
@@ -69,7 +237,8 @@ def main():
     pending = st.session_state.pop("pending_mode_switch", None)
     if pending is not None:
         st.session_state["active_mode"] = pending
-    active_mode = st.sidebar.radio("Mode", modes, key="active_mode")
+    st.sidebar.markdown("**Mode**")
+    active_mode = st.sidebar.radio("Mode", modes, key="active_mode", label_visibility="collapsed")
 
     if active_mode == "Latent Continuity":
         mode_continuity.render(model, chorus_dir=CHORUS_DIR)
