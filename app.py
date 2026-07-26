@@ -247,7 +247,7 @@ def main():
         )
         st.stop()
 
-    modes = ["Latent Continuity", "Random Generation", "MidiMe Personalization"]
+    modes = ["Latent Continuity", "Random Generation", "Personalisation"]
     if "active_mode" not in st.session_state:
         st.session_state["active_mode"] = modes[0]
     # a mode file (e.g. mode_continuity's handoff button) can request a switch
@@ -262,7 +262,7 @@ def main():
         mode_continuity.render(model, chorus_dir=CHORUS_DIR)
     elif active_mode == "Random Generation":
         mode_random.render(model, pca)
-    elif active_mode == "MidiMe Personalization":
+    elif active_mode == "Personalisation":
         mode_midime.render(model, midime_model, tracks, pca, chorus_dir=CHORUS_DIR)
 
 

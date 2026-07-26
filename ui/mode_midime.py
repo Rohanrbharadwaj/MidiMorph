@@ -51,7 +51,7 @@ def _generate_sample(
 
 
 def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/chorus_midis"):
-    st.subheader("MidiMe Personalization")
+    st.subheader("Personalisation")
     st.caption("Pick a track, hear the original, then explore its personalized latent neighborhood.")
 
     track_keys = sorted(tracks.keys())
@@ -81,7 +81,6 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
         N_SUPER_SLIDERS,
         SUPER_KEY_PREFIX,
         height=160,
-        labels=[str(i + 1) for i in range(N_SUPER_SLIDERS)],
     )
 
     with st.expander("Fine-grained (20 PCA components)", expanded=True):
@@ -104,4 +103,4 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
     st.plotly_chart(fig, width='stretch')
 
     pm = token_sequence_to_midi(sample, bpm=track_info["bpm"])
-    st.audio(pm_to_wav_bytes(pm), format="audio/wav")
+    st.audio(pm_to_wav_bytes(pm), format="audio/wav", loop=True)

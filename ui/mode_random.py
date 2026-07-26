@@ -76,4 +76,4 @@ def render(model, pca, z_size: int = 256, bpm: float = 120.0):
     st.plotly_chart(fig, width='stretch')
 
     pm = token_sequence_to_midi(sample, bpm=bpm)
-    st.audio(pm_to_wav_bytes(pm), format="audio/wav")
+    st.audio(pm_to_wav_bytes(pm), format="audio/wav", loop=True)
