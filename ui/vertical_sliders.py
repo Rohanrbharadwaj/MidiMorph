@@ -49,15 +49,32 @@ def slider_bank(
     """Renders n vertical sliders packed into n equal-width columns.
     labels: per-slider caption (e.g. "1".."4"); None means no label at all,
     which is what keeps the 20-slider row down to bare colored bars.
+
+    Each vertical_slider() is its own iframe-backed custom component: it
+    reports its value back to Python asynchronously, on its own schedule, as
+    its frontend boots up. That means on the very first script run after a
+    key like this is created (e.g. right after switching modes), the
+    component's Python call can return None for a brief instant, before its
+    iframe has finished mounting and reported an initial value -- downstream
+    code (combined_z -> model.decoder.sample) doesn't tolerate None and either
+    throws or produces garbage until a follow-up rerun fixes it, which is what
+    reads as "lag" between switching modes and getting real output.
+    We pre-seed session_state with default_value before the widget is created
+    (so there's always a defined value to fall back on) and fall back to it
+    explicitly if the component itself hasn't reported back yet -- so the very
+    first render already has n real floats, no waiting on a round trip.
     """
     cols = st.columns(n, gap="small")
     values: List[float] = []
     for i, col in enumerate(cols):
         with col:
+            key = f"{key_prefix}{i}"
+            if key not in st.session_state:
+                st.session_state[key] = default_value
             t = i / max(n - 1, 1)
             val = svs.vertical_slider(
                 label=labels[i] if labels else None,
-                key=f"{key_prefix}{i}",
+                key=key,
                 height=height,
                 thumb_shape="square",
                 step=step,
@@ -69,5 +86,7 @@ def slider_bank(
                 thumb_color=THUMB_COLOR,
                 value_always_visible=False,
             )
+            if val is None:
+                val = st.session_state.get(key, default_value)
             values.append(val)
     return values

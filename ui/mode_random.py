@@ -31,6 +31,14 @@ def _fresh_seed() -> int:
     return random.randint(0, 2**31 - 1)
 
 
+@st.cache_data(show_spinner=False)
+def _generate_sample(_model, _pca, slider_vals: tuple, w_base_list: tuple, temperature: float, seed: int):
+    w_base = torch.tensor(w_base_list, dtype=torch.float32)
+    z = combined_z(_pca, list(slider_vals), w_base=w_base, midime_model=None)
+    torch.manual_seed(seed)
+    return _model.decoder.sample(z, max_length=32, temperature=temperature)[0].cpu().numpy()
+
+
 def render(model, pca, z_size: int = 256, bpm: float = 120.0):
     st.subheader("Random Generation")
     st.caption("20 sliders, each one a principal component of the trained MusicVAE's latent space.")
@@ -60,9 +68,9 @@ def render(model, pca, z_size: int = 256, bpm: float = 120.0):
 
     temperature = st.slider("temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
 
-    z = combined_z(pca, slider_vals, w_base=w_base, midime_model=None)
-    torch.manual_seed(st.session_state[SEED_KEY])
-    sample = model.decoder.sample(z, max_length=32, temperature=temperature)[0].cpu().numpy()
+    sample = _generate_sample(
+        model, pca, tuple(slider_vals), tuple(w_base.tolist()), temperature, st.session_state[SEED_KEY]
+    )
 
     fig = render_piano_roll(sample, bpm=bpm, height=280)
     st.plotly_chart(fig, width='stretch')
