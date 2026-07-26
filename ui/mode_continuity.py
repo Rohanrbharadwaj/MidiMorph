@@ -42,5 +42,9 @@ def render(model, chorus_dir: str = "assets/chorus_midis", steps: int = 6, bpm: 
     st.divider()
     if st.button("Try it yourself, starting from the last step →", type="primary"):
         st.session_state["starting_z"] = z_interp[-1]
-        st.session_state["active_mode"] = "Random Generation"
+        # write to a separate key, not "active_mode" directly -- that key
+        # belongs to the sidebar radio widget once it's instantiated, and
+        # Streamlit forbids writing to a widget's own key after the fact.
+        # app.py checks this key before creating the radio and consumes it there.
+        st.session_state["pending_mode_switch"] = "Random Generation"
         st.rerun()

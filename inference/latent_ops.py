@@ -9,8 +9,7 @@ Operations on the MusicVAE latent space, shared across all three app modes:
 
 `combined_z` is the single shared implementation for slider -> z construction
 that Modes 1 and 2 both call (Mode 1 is just Mode 2 with w_base fixed to
-w_center and no super-slider offsets) -- see the note in the model.py PR
-about not duplicating this logic per-mode.
+w_center and no super-slider offsets)
 """
 from typing import List, Optional, Tuple
 

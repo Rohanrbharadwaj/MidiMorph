@@ -62,9 +62,14 @@ def main():
         st.stop()
 
     modes = ["Latent Continuity", "Random Generation", "MidiMe Personalization"]
-    default_mode = st.session_state.get("active_mode", modes[0])
-    active_mode = st.sidebar.radio("Mode", modes, index=modes.index(default_mode))
-    st.session_state["active_mode"] = active_mode
+    if "active_mode" not in st.session_state:
+        st.session_state["active_mode"] = modes[0]
+    # a mode file (e.g. mode_continuity's handoff button) can request a switch
+    # by setting this key; consumed here, before the radio owns "active_mode"
+    pending = st.session_state.pop("pending_mode_switch", None)
+    if pending is not None:
+        st.session_state["active_mode"] = pending
+    active_mode = st.sidebar.radio("Mode", modes, key="active_mode")
 
     if active_mode == "Latent Continuity":
         mode_continuity.render(model, chorus_dir=CHORUS_DIR)

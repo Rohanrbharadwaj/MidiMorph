@@ -1,6 +1,6 @@
 """
 MusicVAE architecture: bidirectional LSTM encoder, z-conditioned categorical
-LSTM decoder, and the VAE wrapper with the reconstruction + KL loss.
+LSTM decode and the VAE wrapper with the reconstruction + KL loss.
 
 Defaults match the shapes the checkpoint on Drive was trained with
 (OUTPUT_DEPTH=90, ENC_RNN_SIZE=512, dec_hidden=256, z_size=256). If you

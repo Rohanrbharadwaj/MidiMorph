@@ -1,26 +1,4 @@
-"""
-Everything needed to go from "checkpoint files on disk" to "a ready-to-query
-model + fitted PCA basis for the 20 sliders + precomputed MidiMe positions."
 
-Deliberately framework-agnostic (no `streamlit` import here) so it's testable
-standalone. In app.py, wrap the expensive/session-wide calls in Streamlit's
-cache decorators so they only run once per server process, not once per
-slider drag:
-
-    @st.cache_resource
-    def get_model():
-        return load_musicvae_checkpoint("weights/musicvae.pt")
-
-    @st.cache_resource
-    def get_midime_bundle():
-        # precomputed offline by scripts/precompute_midime.py, no training here
-        return load_midime_bundle("weights/midime_offline.pt")
-
-    @st.cache_data
-    def get_pca(_model, _chunks):          # leading underscore = don't hash arg
-        mu_all = encode_dataset(_model, _chunks)
-        return fit_pca(mu_all, n_components=20)
-"""
 import os
 import urllib.request
 from typing import Dict, List
