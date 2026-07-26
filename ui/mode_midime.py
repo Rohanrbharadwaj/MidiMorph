@@ -25,7 +25,11 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
     st.subheader("MidiMe Personalization")
     st.caption("Pick a track, hear the original, then explore its personalized latent neighborhood.")
 
-    track_name = st.selectbox("Track", options=sorted(tracks.keys()))
+    track_keys = sorted(tracks.keys())
+    track_labels = {key: f"Track {i + 1}" for i, key in enumerate(track_keys)}
+    track_name = st.selectbox(
+        "Track", options=track_keys, format_func=lambda key: track_labels[key]
+    )
     track_info = tracks[track_name]
 
     original_pm = pretty_midi.PrettyMIDI(f"{chorus_dir}/{track_name}.mid")
@@ -39,7 +43,7 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
             st.session_state[f"{PCA_KEY_PREFIX}{i}"] = 0.0
         st.rerun()
 
-    st.markdown("**Personalization sliders**")
+    st.markdown("**Super Sliders**")
     super_cols = st.columns(N_SUPER_SLIDERS)
     super_vals = []
     for i, col in enumerate(super_cols):

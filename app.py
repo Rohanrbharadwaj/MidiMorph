@@ -144,6 +144,16 @@ def inject_theme():
             background: linear-gradient(90deg, {CYAN}, {MAGENTA}) !important;
         }}
 
+        /* ---- slider value readout: keep the number, drop the pill/box
+           Streamlit draws behind it ---- */
+        [data-testid="stSliderThumbValue"] {{
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            color: {TEXT_COLOR} !important;
+        }}
+
         /* ---- primary buttons: gradient fill matching the hero ---- */
         .stButton > button[kind="primary"] {{
             background: linear-gradient(90deg, {CYAN}, {MAGENTA});
