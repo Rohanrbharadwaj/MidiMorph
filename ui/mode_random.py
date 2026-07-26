@@ -20,6 +20,7 @@ from inference.latent_ops import combined_z
 from musicvae.tokenizer import token_sequence_to_midi
 from ui.audio_utils import pm_to_wav_bytes
 from ui.piano_roll import render_piano_roll
+from ui.vertical_sliders import slider_bank
 
 N_SLIDERS = 20
 SLIDER_KEY_PREFIX = "mode1_pca_slider_"
@@ -55,16 +56,9 @@ def render(model, pca, z_size: int = 256, bpm: float = 120.0):
             st.session_state[SEED_KEY] = _fresh_seed()
             st.rerun()
 
-    slider_cols = st.columns(4)
-    slider_vals = []
-    for i in range(N_SLIDERS):
-        with slider_cols[i % 4]:
-            val = st.slider(
-                f"component {i + 1}", -1.0, 1.0, 0.0, 0.1, key=f"{SLIDER_KEY_PREFIX}{i}"
-            )
-            slider_vals.append(val)
+    slider_vals = slider_bank(N_SLIDERS, SLIDER_KEY_PREFIX, height=120)
 
-    temperature = st.slider("Temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
+    temperature = st.slider("temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
 
     z = combined_z(pca, slider_vals, w_base=w_base, midime_model=None)
     torch.manual_seed(st.session_state[SEED_KEY])

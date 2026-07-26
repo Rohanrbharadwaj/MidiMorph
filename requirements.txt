@@ -4,3 +4,5 @@ numpy
 plotly
 streamlit
 numpy
+streamlit-vertical-slider
+streamlit-toggle-switch

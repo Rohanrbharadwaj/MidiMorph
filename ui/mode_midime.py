@@ -14,6 +14,7 @@ from inference.latent_ops import combined_z
 from musicvae.tokenizer import token_sequence_to_midi
 from ui.audio_utils import pm_to_wav_bytes
 from ui.piano_roll import render_piano_roll
+from ui.vertical_sliders import slider_bank
 
 N_PCA_SLIDERS = 20
 N_SUPER_SLIDERS = 4
@@ -44,24 +45,17 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
         st.rerun()
 
     st.markdown("**Super Sliders**")
-    super_cols = st.columns(N_SUPER_SLIDERS)
-    super_vals = []
-    for i, col in enumerate(super_cols):
-        with col:
-            val = st.slider(f"trait {i + 1}", -1.0, 1.0, 0.0, 0.1, key=f"{SUPER_KEY_PREFIX}{i}")
-            super_vals.append(val)
+    super_vals = slider_bank(
+        N_SUPER_SLIDERS,
+        SUPER_KEY_PREFIX,
+        height=160,
+        labels=[str(i + 1) for i in range(N_SUPER_SLIDERS)],
+    )
 
     with st.expander("Fine-grained (20 PCA components)"):
-        pca_cols = st.columns(4)
-        pca_vals = []
-        for i in range(N_PCA_SLIDERS):
-            with pca_cols[i % 4]:
-                val = st.slider(
-                    f"component {i + 1}", -1.0, 1.0, 0.0, 0.1, key=f"{PCA_KEY_PREFIX}{i}"
-                )
-                pca_vals.append(val)
+        pca_vals = slider_bank(N_PCA_SLIDERS, PCA_KEY_PREFIX, height=120)
 
-    temperature = st.slider("Temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
+    temperature = st.slider("temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
 
     z = combined_z(
         pca, pca_vals, w_base=track_info["w"], midime_model=midime_model, super_offsets=super_vals
