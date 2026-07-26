@@ -1,14 +1,20 @@
 """
-Everything needed to go from "a checkpoint file on disk" to "a ready-to-query
-model + fitted PCA basis for the 20 sliders."
+Everything needed to go from "checkpoint files on disk" to "a ready-to-query
+model + fitted PCA basis for the 20 sliders + precomputed MidiMe positions."
 
 Deliberately framework-agnostic (no `streamlit` import here) so it's testable
-standalone. In app.py, wrap the two expensive calls in Streamlit's cache
-decorators so they only run once per server process, not once per slider drag:
+standalone. In app.py, wrap the expensive/session-wide calls in Streamlit's
+cache decorators so they only run once per server process, not once per
+slider drag:
 
     @st.cache_resource
     def get_model():
         return load_musicvae_checkpoint("weights/musicvae.pt")
+
+    @st.cache_resource
+    def get_midime_bundle():
+        # precomputed offline by scripts/precompute_midime.py, no training here
+        return load_midime_bundle("weights/midime_offline.pt")
 
     @st.cache_data
     def get_pca(_model, _chunks):          # leading underscore = don't hash arg
@@ -17,11 +23,12 @@ decorators so they only run once per server process, not once per slider drag:
 """
 import os
 import urllib.request
-from typing import List, Optional
+from typing import Dict, List
 
 import numpy as np
 import torch
 
+from musicvae.midime import MidiMe
 from musicvae.model import MusicVAE
 from musicvae.tokenizer import OUTPUT_DEPTH, tokens_to_one_hot
 
@@ -58,7 +65,6 @@ def load_musicvae_checkpoint(
     ).to(device)
 
     state_dict = torch.load(checkpoint_path, map_location=device)
-    # allow either a raw state_dict or a training-checkpoint dict with extra keys
     if "model_state_dict" in state_dict:
         state_dict = state_dict["model_state_dict"]
 
@@ -117,3 +123,31 @@ def fit_pca(mu_all: torch.Tensor, n_components: int = 20):
     pca = PCA(n_components=n_components)
     pca.fit(mu_all.numpy())
     return pca
+
+
+def load_midime_bundle(bundle_path: str, device: str = "cpu"):
+    """Load the output of scripts/precompute_midime.py: a trained MidiMe model
+    plus each demo track's precomputed w-position and bpm, so Mode 2 never
+    needs to run encode() or train_midime() live at runtime -- only decode().
+
+    Returns:
+        midime_model: ready-to-decode MidiMe, already in eval mode
+        tracks: dict of {track_name: {"w": tensor[latent_size], "bpm": float}}
+        w_center: tensor[latent_size], the average across all tracks
+    """
+    bundle = torch.load(bundle_path, map_location=device)
+
+    midime_model = MidiMe(
+        input_size=bundle["input_size"],
+        hidden_size=bundle["hidden_size"],
+        latent_size=bundle["latent_size"],
+    ).to(device)
+    midime_model.load_state_dict(bundle["midime_state_dict"])
+    midime_model.eval()
+
+    tracks: Dict[str, Dict] = {
+        name: {"w": bundle["w_mu_real"][i].to(device), "bpm": bundle["bpm"][i]}
+        for i, name in enumerate(bundle["track_names"])
+    }
+
+    return midime_model, tracks, bundle["w_center"].to(device)
