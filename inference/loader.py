@@ -64,7 +64,10 @@ def load_musicvae_checkpoint(
         output_depth=OUTPUT_DEPTH, enc_hidden=enc_hidden, dec_hidden=dec_hidden, z_size=z_size
     ).to(device)
 
-    state_dict = torch.load(checkpoint_path, map_location=device)
+    # weights_only=False: PyTorch >=2.6 defaults to True, which blocks the
+    # numpy arrays these bundles contain. Safe here since these are your own
+    # precomputed files, not arbitrary downloads.
+    state_dict = torch.load(checkpoint_path, map_location=device, weights_only=False)
     if "model_state_dict" in state_dict:
         state_dict = state_dict["model_state_dict"]
 
@@ -135,7 +138,7 @@ def load_midime_bundle(bundle_path: str, device: str = "cpu"):
         tracks: dict of {track_name: {"w": tensor[latent_size], "bpm": float}}
         w_center: tensor[latent_size], the average across all tracks
     """
-    bundle = torch.load(bundle_path, map_location=device)
+    bundle = torch.load(bundle_path, map_location=device, weights_only=False)
 
     midime_model = MidiMe(
         input_size=bundle["input_size"],
@@ -151,3 +154,26 @@ def load_midime_bundle(bundle_path: str, device: str = "cpu"):
     }
 
     return midime_model, tracks, bundle["w_center"].to(device)
+
+
+class SimplePCA:
+    """Minimal stand-in for sklearn's fitted PCA object -- exposes just the
+    two attributes `inference.latent_ops.combined_z` actually reads
+    (`components_`, `explained_variance_`). Lets the deployed app avoid a
+    scikit-learn dependency entirely: sklearn is only needed offline, inside
+    scripts/precompute_pca.py, to do the actual fitting.
+    """
+
+    def __init__(self, components: np.ndarray, explained_variance: np.ndarray):
+        self.components_ = components
+        self.explained_variance_ = explained_variance
+
+
+def load_pca_bundle(bundle_path: str) -> SimplePCA:
+    """Load the output of scripts/precompute_pca.py -- the 20 PCA slider
+    directions + their scale, precomputed once offline against a broad sample
+    of POP909 chunks. No sklearn import needed here; the bundle is just two
+    numpy arrays.
+    """
+    bundle = torch.load(bundle_path, map_location="cpu", weights_only=False)
+    return SimplePCA(bundle["components"], bundle["explained_variance"])

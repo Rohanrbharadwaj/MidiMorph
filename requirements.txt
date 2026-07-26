@@ -2,3 +2,5 @@ torch>=2.0
 pretty_midi
 numpy
 plotly
+streamlit
+numpy

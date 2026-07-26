@@ -31,7 +31,7 @@ def interpolate_chunks(
     temperature: float = 0.5,
     device: str = "cpu",
     travel_fraction: float = 0.5,
-) -> Tuple[np.ndarray, torch.Tensor]:
+) -> Tuple[np.ndarray, np.ndarray, torch.Tensor]:
     """Encode two token chunks, linearly interpolate between their mu's, and
     decode each interpolation step. This is the continuity-of-latent-space
     demo: no sliders, no MidiMe -- just proof that nearby points in z decode
@@ -46,6 +46,8 @@ def interpolate_chunks(
     Returns:
         alphas: [steps] numpy array of interpolation weights, 0.0 -> 1.0
         samples: [steps, seq_len] token indices, one row per interpolation step
+        z_interp: [steps, z_size] tensor -- the actual latent points visited,
+            e.g. z_interp[-1] as a starting point for slider-based exploration
     """
     model.eval()
 
@@ -61,7 +63,7 @@ def interpolate_chunks(
 
     samples = model.decoder.sample(z_interp, max_length=chunk_a_tokens.shape[-1], temperature=temperature)
 
-    return alphas.squeeze(1).cpu().numpy(), samples.cpu().numpy()
+    return alphas.squeeze(1).cpu().numpy(), samples.cpu().numpy(), z_interp.cpu()
 
 
 def combined_z(
