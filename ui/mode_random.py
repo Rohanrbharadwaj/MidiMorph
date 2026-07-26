@@ -66,7 +66,7 @@ def render(model, pca, z_size: int = 256, bpm: float = 120.0):
 
     slider_vals = slider_bank(N_SLIDERS, SLIDER_KEY_PREFIX, height=120)
 
-    temperature = st.slider("temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
+    temperature = st.slider("Temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
 
     sample = _generate_sample(
         model, pca, tuple(slider_vals), tuple(w_base.tolist()), temperature, st.session_state[SEED_KEY]

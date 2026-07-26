@@ -86,7 +86,7 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
     with st.expander("Fine-grained (20 PCA components)", expanded=True):
         pca_vals = slider_bank(N_PCA_SLIDERS, PCA_KEY_PREFIX, height=120)
 
-    temperature = st.slider("temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
+    temperature = st.slider("Temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
 
     sample = _generate_sample(
         model,

@@ -24,6 +24,19 @@ def audio_array_to_wav_bytes(audio: np.ndarray, sample_rate: int) -> bytes:
     return buf.getvalue()
 
 
+def _trim_silence(audio: np.ndarray, threshold: float = 1e-3) -> np.ndarray:
+    """Cut any near-zero samples off both ends of a mono audio array.
+
+    Purely amplitude-based (not tied to any particular note timing/envelope
+    assumptions), so it works regardless of how the audio was synthesized.
+    Returns the array unchanged if it's silent throughout (nothing to trim).
+    """
+    audible = np.flatnonzero(np.abs(audio) > threshold)
+    if audible.size == 0:
+        return audio
+    return audio[audible[0] : audible[-1] + 1]
+
+
 def pm_to_wav_bytes(pm: pretty_midi.PrettyMIDI, fs: int = 22050) -> bytes:
     """Render a PrettyMIDI object to playable WAV bytes.
 
@@ -36,5 +49,5 @@ def pm_to_wav_bytes(pm: pretty_midi.PrettyMIDI, fs: int = 22050) -> bytes:
         # silent chunk -- return a short buffer of true silence rather than
         # letting synthesize() on an empty instrument raise or return odd length
         return audio_array_to_wav_bytes(np.zeros(fs // 4), fs)
-    audio = pm.synthesize(fs=fs)
+    audio = _trim_silence(pm.synthesize(fs=fs))
     return audio_array_to_wav_bytes(audio, fs)
