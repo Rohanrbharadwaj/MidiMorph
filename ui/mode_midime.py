@@ -36,7 +36,7 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
     st.audio(pm_to_wav_bytes(original_pm), format="audio/wav")
     st.caption(f"↑ original · {track_info['bpm']:.0f} BPM")
 
-    if st.button("Reset sliders"):
+    if st.button("Reset Sliders"):
         for i in range(N_SUPER_SLIDERS):
             st.session_state[f"{SUPER_KEY_PREFIX}{i}"] = 0.0
         for i in range(N_PCA_SLIDERS):
@@ -48,7 +48,7 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
     super_vals = []
     for i, col in enumerate(super_cols):
         with col:
-            val = st.slider(f"trait {i + 1}", -2.0, 2.0, 0.0, 0.1, key=f"{SUPER_KEY_PREFIX}{i}")
+            val = st.slider(f"trait {i + 1}", -1.0, 1.0, 0.0, 0.1, key=f"{SUPER_KEY_PREFIX}{i}")
             super_vals.append(val)
 
     with st.expander("Fine-grained (20 PCA components)"):
@@ -57,11 +57,11 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
         for i in range(N_PCA_SLIDERS):
             with pca_cols[i % 4]:
                 val = st.slider(
-                    f"component {i + 1}", -2.0, 2.0, 0.0, 0.1, key=f"{PCA_KEY_PREFIX}{i}"
+                    f"component {i + 1}", -1.0, 1.0, 0.0, 0.1, key=f"{PCA_KEY_PREFIX}{i}"
                 )
                 pca_vals.append(val)
 
-    temperature = st.slider("temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
+    temperature = st.slider("Temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
 
     z = combined_z(
         pca, pca_vals, w_base=track_info["w"], midime_model=midime_model, super_offsets=super_vals

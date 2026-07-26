@@ -135,18 +135,16 @@ def inject_theme():
             color: {TEXT_MUTED};
         }}
 
-        /* ---- sliders: gradient-tinted handle instead of Streamlit's default red ---- */
+        /* ---- sliders: cyan thumb; no colored/gradiented track fill, no
+           boxed value or min/max range readouts -- numbers sit on their own ---- */
         .stSlider [role="slider"] {{
             background-color: {CYAN} !important;
             border-color: {CYAN} !important;
         }}
-        .stSlider > div > div > div > div {{
-            background: linear-gradient(90deg, {CYAN}, {MAGENTA}) !important;
-        }}
 
-        /* ---- slider value readout: keep the number, drop the pill/box
-           Streamlit draws behind it ---- */
-        [data-testid="stSliderThumbValue"] {{
+        [data-testid="stSliderThumbValue"],
+        [data-testid="stSliderTickBarMin"],
+        [data-testid="stSliderTickBarMax"] {{
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;

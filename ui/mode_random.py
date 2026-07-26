@@ -42,9 +42,9 @@ def render(model, pca, z_size: int = 256, bpm: float = 120.0):
     if starting_z is not None:
         st.info("Starting from where the continuity demo left off.", icon="🎵")
 
-    reset_col, new_col = st.columns(2)
+    reset_col, new_col, _spacer = st.columns([1, 1, 4])
     with reset_col:
-        if st.button("Reset sliders"):
+        if st.button("Reset Sliders"):
             for i in range(N_SLIDERS):
                 st.session_state[f"{SLIDER_KEY_PREFIX}{i}"] = 0.0
             st.rerun()
@@ -60,11 +60,11 @@ def render(model, pca, z_size: int = 256, bpm: float = 120.0):
     for i in range(N_SLIDERS):
         with slider_cols[i % 4]:
             val = st.slider(
-                f"component {i + 1}", -2.0, 2.0, 0.0, 0.1, key=f"{SLIDER_KEY_PREFIX}{i}"
+                f"component {i + 1}", -1.0, 1.0, 0.0, 0.1, key=f"{SLIDER_KEY_PREFIX}{i}"
             )
             slider_vals.append(val)
 
-    temperature = st.slider("temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
+    temperature = st.slider("Temperature (higher = more random)", 0.1, 1.5, 0.5, 0.05)
 
     z = combined_z(pca, slider_vals, w_base=w_base, midime_model=None)
     torch.manual_seed(st.session_state[SEED_KEY])
