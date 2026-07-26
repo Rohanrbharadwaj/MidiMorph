@@ -10,17 +10,23 @@ Expects, relative to this file:
     weights/pca_basis.pt           -- from scripts/precompute_pca.py (committed)
     assets/chorus_midis/*.mid      -- the 6 demo tracks (committed)
 """
+import os
+
 import streamlit as st
 
 from inference.loader import load_midime_bundle, load_musicvae_checkpoint, load_pca_bundle
 from ui import mode_continuity, mode_midime, mode_random
 
-MUSICVAE_CHECKPOINT = "weights/musicvae_trained.pt"
-MIDIME_BUNDLE = "weights/midime_offline.pt"
-PCA_BUNDLE = "weights/pca_basis.pt"
-CHORUS_DIR = "assets/chorus_midis"
+# Anchored to this file's location, not the shell's cwd -- so `streamlit run app.py`
+# works the same whether invoked from the repo root or anywhere else, and matches
+# how Streamlit Community Cloud runs it (cwd = repo root, but no need to rely on that).
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MUSICVAE_CHECKPOINT = os.path.join(BASE_DIR, "weights", "musicvae_trained.pt")
+MIDIME_BUNDLE = os.path.join(BASE_DIR, "weights", "midime_offline.pt")
+PCA_BUNDLE = os.path.join(BASE_DIR, "weights", "pca_basis.pt")
+CHORUS_DIR = os.path.join(BASE_DIR, "assets", "chorus_midis")
 
-st.set_page_config(page_title="MidiMe", page_icon="🎹", layout="wide")
+st.set_page_config(page_title="MidiMorph", page_icon="🎹", layout="wide")
 
 
 @st.cache_resource
@@ -39,7 +45,7 @@ def get_pca_bundle():
 
 
 def main():
-    st.title("🎹 MidiMe")
+    st.title("🎹 MidiMorph")
 
     try:
         model = get_model()
