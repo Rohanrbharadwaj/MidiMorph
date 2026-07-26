@@ -64,7 +64,7 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
         st.session_state[seed_key] = _fresh_seed()
 
     original_tokens = midi_to_token_sequence(f"{chorus_dir}/{track_name}.mid")
-    st.caption("Original")
+    st.caption(f"Original · {track_info['bpm']:.0f} BPM")
     render_synced_player(
         original_tokens, bpm=track_info["bpm"], height=220, loop=True, key=f"mode2_original_{track_name}"
     )
@@ -99,7 +99,7 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
         st.session_state[seed_key],
     )
 
-    st.caption("Generated")
+    st.caption(f"Generated · {track_info['bpm']:.0f} BPM")
     render_synced_player(
         sample, bpm=track_info["bpm"], height=280, loop=True, key=f"mode2_player_{track_name}"
     )
