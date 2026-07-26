@@ -17,9 +17,7 @@ import torch
 import streamlit as st
 
 from inference.latent_ops import combined_z
-from musicvae.tokenizer import token_sequence_to_midi
-from ui.audio_utils import pm_to_wav_bytes
-from ui.piano_roll import render_piano_roll
+from ui.synced_player import render_synced_player
 from ui.vertical_sliders import slider_bank
 
 N_SLIDERS = 20
@@ -72,8 +70,4 @@ def render(model, pca, z_size: int = 256, bpm: float = 120.0):
         model, pca, tuple(slider_vals), tuple(w_base.tolist()), temperature, st.session_state[SEED_KEY]
     )
 
-    fig = render_piano_roll(sample, bpm=bpm, height=280)
-    st.plotly_chart(fig, width='stretch')
-
-    pm = token_sequence_to_midi(sample, bpm=bpm)
-    st.audio(pm_to_wav_bytes(pm), format="audio/wav", loop=True)
+    render_synced_player(sample, bpm=bpm, height=280, loop=True, key="mode1_player")

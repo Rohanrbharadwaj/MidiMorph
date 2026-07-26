@@ -51,3 +51,34 @@ def pm_to_wav_bytes(pm: pretty_midi.PrettyMIDI, fs: int = 22050) -> bytes:
         return audio_array_to_wav_bytes(np.zeros(fs // 4), fs)
     audio = _trim_silence(pm.synthesize(fs=fs))
     return audio_array_to_wav_bytes(audio, fs)
+
+
+def pm_to_wav_bytes_and_offset(pm: pretty_midi.PrettyMIDI, fs: int = 22050):
+    """Same rendering as pm_to_wav_bytes, but also returns how many seconds
+    were trimmed off the FRONT by _trim_silence.
+
+    Needed by anything that overlays visuals synced to the audio's own
+    playback clock (e.g. ui/synced_player.py's note highlighting): note
+    onset/offset times are computed from the untrimmed MIDI, but
+    `audio.currentTime` in the browser runs on the trimmed WAV's clock.
+    Without this offset, highlighting drifts by however much leading
+    silence got cut -- which varies per chunk depending on where the first
+    note actually lands relative to the synth's attack envelope, so it
+    can't be assumed to be ~0.
+
+    Returns:
+        wav_bytes: same as pm_to_wav_bytes
+        offset_seconds: add this to audio.currentTime to get back into the
+            original MIDI's time coordinates
+    """
+    if not pm.instruments or not any(inst.notes for inst in pm.instruments):
+        return audio_array_to_wav_bytes(np.zeros(fs // 4), fs), 0.0
+
+    audio = pm.synthesize(fs=fs)
+    audible = np.flatnonzero(np.abs(audio) > 1e-3)
+    if audible.size == 0:
+        return audio_array_to_wav_bytes(audio, fs), 0.0
+
+    trimmed = audio[audible[0] : audible[-1] + 1]
+    offset_seconds = float(audible[0]) / fs
+    return audio_array_to_wav_bytes(trimmed, fs), offset_seconds

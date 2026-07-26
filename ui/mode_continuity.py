@@ -10,9 +10,7 @@ import streamlit as st
 
 from inference.latent_ops import interpolate_chunks
 from musicvae.tokenizer import midi_to_token_sequence
-from ui.audio_utils import pm_to_wav_bytes
-from ui.piano_roll import render_piano_roll
-from musicvae.tokenizer import token_sequence_to_midi
+from ui.synced_player import render_synced_player
 
 # Furthest-apart pair by repeat-count/character among the 6 extracted hooks --
 # see the chorus-extraction notes. Swap these if you find a more dramatic pair.
@@ -38,10 +36,7 @@ def render(model, chorus_dir: str = "assets/chorus_midis", steps: int = 6, bpm: 
             f'<div class="mm-card"><div class="mm-card-label">Step {i}</div>',
             unsafe_allow_html=True,
         )
-        fig = render_piano_roll(samples[i], bpm=bpm, height=340)
-        st.plotly_chart(fig, width='stretch', key=f"continuity_roll_{i}")
-        pm = token_sequence_to_midi(samples[i], bpm=bpm)
-        st.audio(pm_to_wav_bytes(pm), format="audio/wav")
+        render_synced_player(samples[i], bpm=bpm, height=280, loop=False, key=f"continuity_{i}")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.divider()

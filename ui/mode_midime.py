@@ -9,13 +9,11 @@ train_midime(), so switching tracks is instant.
 """
 import random
 
-import pretty_midi
 import streamlit as st
 
 from inference.latent_ops import combined_z
-from musicvae.tokenizer import token_sequence_to_midi
-from ui.audio_utils import pm_to_wav_bytes
-from ui.piano_roll import render_piano_roll
+from musicvae.tokenizer import midi_to_token_sequence
+from ui.synced_player import render_synced_player
 from ui.vertical_sliders import slider_bank
 
 N_PCA_SLIDERS = 20
@@ -65,9 +63,11 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
     if seed_key not in st.session_state:
         st.session_state[seed_key] = _fresh_seed()
 
-    original_pm = pretty_midi.PrettyMIDI(f"{chorus_dir}/{track_name}.mid")
-    st.audio(pm_to_wav_bytes(original_pm), format="audio/wav")
-    st.caption(f"↑ original · {track_info['bpm']:.0f} BPM")
+    original_tokens = midi_to_token_sequence(f"{chorus_dir}/{track_name}.mid")
+    st.caption("Original")
+    render_synced_player(
+        original_tokens, bpm=track_info["bpm"], height=220, loop=True, key=f"mode2_original_{track_name}"
+    )
 
     if st.button("Reset Sliders"):
         for i in range(N_SUPER_SLIDERS):
@@ -99,8 +99,7 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
         st.session_state[seed_key],
     )
 
-    fig = render_piano_roll(sample, bpm=track_info["bpm"], height=280)
-    st.plotly_chart(fig, width='stretch')
-
-    pm = token_sequence_to_midi(sample, bpm=track_info["bpm"])
-    st.audio(pm_to_wav_bytes(pm), format="audio/wav", loop=True)
+    st.caption("Generated")
+    render_synced_player(
+        sample, bpm=track_info["bpm"], height=280, loop=True, key=f"mode2_player_{track_name}"
+    )
