@@ -8,8 +8,6 @@ No `streamlit` import here -- callers do `st.plotly_chart(render_piano_roll(...)
 This stays a pure function (tokens in, figure out) so it's testable standalone,
 same as tokenizer/model/latent_ops.
 """
-from typing import Optional
-
 import numpy as np
 import plotly.graph_objects as go
 
@@ -33,7 +31,6 @@ def _pitch_to_color(pitch: int, pmin: int, pmax: int) -> str:
 def render_piano_roll(
     tokens: np.ndarray,
     bpm: float = 120.0,
-    title: Optional[str] = None,
     height: int = 260,
 ) -> go.Figure:
     """tokens: 1D token indices, or 2D one-hot (will be argmax'd). Returns a
@@ -95,9 +92,8 @@ def render_piano_roll(
         title_text="pitch (MIDI)", color=TEXT_COLOR,
     )
     fig.update_layout(
-        title=title,
         height=height,
-        margin=dict(l=40, r=20, t=30 if title else 10, b=30),
+        margin=dict(l=40, r=20, t=10, b=30),
         plot_bgcolor=BG_COLOR,
         paper_bgcolor=BG_COLOR,
         font_color=TEXT_COLOR,

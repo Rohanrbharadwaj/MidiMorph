@@ -64,7 +64,7 @@ def render(model, midime_model, tracks: dict, pca, chorus_dir: str = "assets/cho
     )
     sample = model.decoder.sample(z, max_length=32, temperature=temperature)[0].cpu().numpy()
 
-    fig = render_piano_roll(sample, bpm=track_info["bpm"], title="personalized generation", height=280)
+    fig = render_piano_roll(sample, bpm=track_info["bpm"], height=280)
     st.plotly_chart(fig, width='stretch')
 
     pm = token_sequence_to_midi(sample, bpm=track_info["bpm"])

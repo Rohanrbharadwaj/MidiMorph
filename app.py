@@ -72,7 +72,7 @@ def inject_theme():
            cap prose measure ---- */
         .block-container {{
             max-width: 1200px;
-            padding-top: 2rem;
+            padding-top: 3.5rem;
         }}
 
         /* ---- headers in the display face ---- */
@@ -88,12 +88,16 @@ def inject_theme():
             font-family: 'Space Grotesk', sans-serif;
             font-weight: 700;
             font-size: 2.75rem;
-            line-height: 1.1;
+            line-height: 1.3;
+            padding-top: 0.15rem;
             margin-bottom: 0.2rem;
             background: linear-gradient(90deg, {CYAN}, {MAGENTA});
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            position: relative;
+            z-index: 1;
+            overflow: visible;
         }}
         .mm-hero-sub {{
             font-family: 'IBM Plex Sans', sans-serif;
@@ -171,6 +175,14 @@ def inject_theme():
             border-radius: 11px;
             padding: 1rem 1.25rem 1.25rem;
         }}
+        .mm-card-label {{
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: {TEXT_COLOR};
+            text-align: center;
+            padding: 0.6rem 0 0.4rem;
+        }}
 
         /* ---- expander / divider tone down to match dark surface ---- */
         .streamlit-expanderHeader {{
@@ -189,9 +201,7 @@ def inject_theme():
 def render_hero():
     st.markdown('<div class="mm-hero-title">MidiMorph</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="mm-hero-sub">A from-scratch MusicVAE, trained on POP909, '
-        "explored three ways: proving its latent space is continuous, sampling "
-        "it directly, and personalizing it to a track you pick.</div>",
+        '<div class="mm-hero-sub">A MusicVAE, trained from scratch on POP909.</div>',
         unsafe_allow_html=True,
     )
 

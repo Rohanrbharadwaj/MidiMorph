@@ -23,8 +23,8 @@ TRACK_B = "pop909_200_chorus"
 def render(model, chorus_dir: str = "assets/chorus_midis", steps: int = 6, bpm: float = 100.0):
     st.subheader("Latent Space Continuity")
     st.caption(
-        f"Morphing in {steps} steps. Observe the variation from one step to the next -- "
-        "nearby points in the latent space decode to musically related output. That's what "
+        f"Morphing in {steps} steps. Observe the variation from one step to the next. "
+        "Nearby points in the latent space decode to musically related output. That's what "
         "makes the sliders in the next two modes explorable rather than random."
     )
 

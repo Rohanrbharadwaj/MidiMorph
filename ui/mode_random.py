@@ -44,7 +44,7 @@ def render(model, pca, z_size: int = 256, bpm: float = 120.0):
     z = combined_z(pca, slider_vals, w_base=w_base, midime_model=None)
     sample = model.decoder.sample(z, max_length=32, temperature=temperature)[0].cpu().numpy()
 
-    fig = render_piano_roll(sample, bpm=bpm, title="generated melody", height=280)
+    fig = render_piano_roll(sample, bpm=bpm, height=280)
     st.plotly_chart(fig, width='stretch')
 
     pm = token_sequence_to_midi(sample, bpm=bpm)
