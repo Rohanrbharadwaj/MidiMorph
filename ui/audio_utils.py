@@ -37,7 +37,7 @@ def _trim_silence(audio: np.ndarray, threshold: float = 1e-3) -> np.ndarray:
     return audio[audible[0] : audible[-1] + 1]
 
 
-def pm_to_wav_bytes(pm: pretty_midi.PrettyMIDI, fs: int = 22050) -> bytes:
+def pm_to_wav_bytes(pm: pretty_midi.PrettyMIDI, fs: int = 44100) -> bytes:
     """Render a PrettyMIDI object to playable WAV bytes.
 
     Uses pm.synthesize() (sine-wave additive synth) rather than fluidsynth --
@@ -53,7 +53,7 @@ def pm_to_wav_bytes(pm: pretty_midi.PrettyMIDI, fs: int = 22050) -> bytes:
     return audio_array_to_wav_bytes(audio, fs)
 
 
-def pm_to_wav_bytes_and_offset(pm: pretty_midi.PrettyMIDI, fs: int = 22050):
+def pm_to_wav_bytes_and_offset(pm: pretty_midi.PrettyMIDI, fs: int = 44100):
     """Same rendering as pm_to_wav_bytes, but also returns how many seconds
     were trimmed off the FRONT by _trim_silence.
 
